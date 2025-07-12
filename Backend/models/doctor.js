@@ -1,12 +1,11 @@
-// backend/models/Doctor.js
 const mongoose = require('mongoose');
 
 const DoctorSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the User model
+    ref: 'User',
     required: true,
-    unique: true // A user can only have one doctor profile
+    unique: true
   },
   specialty: {
     type: String,
@@ -23,7 +22,7 @@ const DoctorSchema = new mongoose.Schema({
   },
   isApproved: {
     type: Boolean,
-    default: false // Doctors are not approved by default
+    default: false
   },
   date: {
     type: Date,

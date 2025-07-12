@@ -1,37 +1,33 @@
-// backend/models/User.js
-// This file defines the Mongoose schema and model for the User.
-
-const mongoose = require('mongoose'); // Import Mongoose
+const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true, // Ensure usernames are unique
+    unique: true
   },
   email: {
     type: String,
     required: true,
-    unique: true, // Ensure emails are unique
+    unique: true
   },
   password: {
     type: String,
-    required: true,
+    required: true
   },
   role: {
     type: String,
-    enum: ['customer', 'doctor', 'admin'], // Enforce specific roles
-    default: 'customer', // Default role for new users
+    enum: ['customer', 'doctor', 'admin'],
+    default: 'customer'
   },
-  // For doctors, this flag indicates if their profile is approved by an admin
   isApproved: {
     type: Boolean,
-    default: false, // Doctors are not approved by default
+    default: false
   },
   date: {
     type: Date,
-    default: Date.now, // Automatically set creation date
-  },
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model('User', UserSchema); // Export the User model
+module.exports = mongoose.model('User', UserSchema);

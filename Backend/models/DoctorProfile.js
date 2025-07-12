@@ -1,39 +1,33 @@
-// backend/models/DoctorProfile.js
-// This file defines the Mongoose schema and model for Doctor Profiles.
-// It links to the User model and stores additional doctor-specific information.
-
-const mongoose = require('mongoose'); // Import Mongoose
+const mongoose = require('mongoose');
 
 const DoctorProfileSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId, // Reference to the User model
-    ref: 'User', // The model name to which this ID refers
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: true,
-    unique: true, // Each user (doctor) can only have one profile
+    unique: true
   },
   specialty: {
     type: String,
-    required: true,
+    required: true
   },
   clinicName: {
-    type: String,
+    type: String
   },
   address: {
-    type: String,
+    type: String
   },
   phone: {
-    type: String,
+    type: String
   },
-  // This flag will be managed by the admin to approve doctor profiles.
-  // It's also duplicated in User model for quick check during user loading.
   isApproved: {
     type: Boolean,
-    default: false,
+    default: false
   },
   date: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model('DoctorProfile', DoctorProfileSchema); // Export the DoctorProfile model
+module.exports = mongoose.model('DoctorProfile', DoctorProfileSchema);
