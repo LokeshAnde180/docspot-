@@ -1,7 +1,3 @@
-// frontend/src/components/CustomerAppointments.jsx
-// This component displays a customer's booked appointments.
-// It allows customers to cancel appointments and process mock payments.
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Typography, Box, Button,
@@ -9,28 +5,26 @@ import {
   CircularProgress,
   List, ListItem, ListItemText, ListItemSecondaryAction, Divider, Chip,
   RadioGroup, Radio, FormControlLabel
-} from '@mui/material'; // Material UI components
-import { AuthContext } from '../AuthContext.jsx'; // Import AuthContext
-import axios from 'axios'; // Axios for HTTP requests
+} from '@mui/material';
+import { AuthContext } from '../AuthContext.jsx';
+import axios from 'axios';
 
-// Helper function to format date for display (e.g., "June 24, 2025")
 const formatDisplayDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 const CustomerAppointments = ({ showSnackbar }) => {
-  const { API_BASE_URL } = useContext(AuthContext); // Access API_BASE_URL from AuthContext
-  const [appointments, setAppointments] = useState([]); // State to store customer's appointments
-  const [loading, setLoading] = useState(true); // Loading state for fetching appointments
-  const [openPaymentDialog, setOpenPaymentDialog] = useState(false); // State for payment dialog
-  const [selectedAppointment, setSelectedAppointment] = useState(null); // Appointment selected for payment
-  const [paymentMethod, setPaymentMethod] = useState('upi'); // State for selected payment method
+  const { API_BASE_URL } = useContext(AuthContext);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('upi');
 
-  // Fetch customer's appointments when the component mounts or dependencies change
   useEffect(() => {
     fetchAppointments();
-  }, [API_BASE_URL, showSnackbar]); // Dependencies for useEffect
+  }, [API_BASE_URL, showSnackbar]);
 
   const fetchAppointments = async () => {
     try {
@@ -44,7 +38,6 @@ const CustomerAppointments = ({ showSnackbar }) => {
     }
   };
 
-  // Helper to get Chip color based on appointment status
   const getStatusChipColor = (status) => {
     switch (status) {
       case 'pending': return 'warning';
@@ -55,7 +48,6 @@ const CustomerAppointments = ({ showSnackbar }) => {
     }
   };
 
-  // Helper to get Chip color based on payment status
   const getPaymentStatusChipColor = (status) => {
     switch (status) {
       case 'pending': return 'warning';
@@ -65,14 +57,12 @@ const CustomerAppointments = ({ showSnackbar }) => {
     }
   };
 
-  // Handle appointment cancellation
   const handleCancelAppointment = async (appointmentId) => {
-    // Using a simple window.confirm for now, but a custom dialog is recommended for production
     if (window.confirm('Are you sure you want to cancel this appointment? This action cannot be undone if payment has been made.')) {
       try {
         const res = await axios.put(`${API_BASE_URL}/customer/appointments/${appointmentId}/cancel`);
         showSnackbar(res.data.msg, 'success');
-        fetchAppointments(); // Refresh appointments list
+        fetchAppointments();
       } catch (err) {
         console.error('Error cancelling appointment:', err.response ? err.response.data : err.message);
         showSnackbar(err.response ? err.response.data.msg : 'Failed to cancel appointment.', 'error');
@@ -80,33 +70,30 @@ const CustomerAppointments = ({ showSnackbar }) => {
     }
   };
 
-  // Open payment dialog
   const handleOpenPaymentDialog = (appointment) => {
     setSelectedAppointment(appointment);
     setOpenPaymentDialog(true);
   };
 
-  // Close payment dialog
   const handleClosePaymentDialog = () => {
     setOpenPaymentDialog(false);
     setSelectedAppointment(null);
-    setPaymentMethod('upi'); // Reset payment method
+    setPaymentMethod('upi');
   };
 
-  // Simulate payment processing
   const handleProcessPayment = async () => {
     if (!selectedAppointment) return;
 
     try {
       const res = await axios.post(`${API_BASE_URL}/customer/appointments/${selectedAppointment._id}/pay`, { paymentMethod });
       showSnackbar(res.data.msg, 'success');
-      handleClosePaymentDialog(); // Close dialog
-      fetchAppointments(); // Refresh appointments list
+      handleClosePaymentDialog();
+      fetchAppointments();
     } catch (err) {
       console.error('Error processing payment:', err.response ? err.response.data : err.message);
       showSnackbar(err.response ? err.response.data.msg : 'Payment failed. Please try again.', 'error');
-      handleClosePaymentDialog(); // Close dialog even on error
-      fetchAppointments(); // Refresh to reflect potential partial updates
+      handleClosePaymentDialog();
+      fetchAppointments();
     }
   };
 

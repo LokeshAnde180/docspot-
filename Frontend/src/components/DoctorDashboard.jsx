@@ -1,59 +1,46 @@
-// frontend/src/components/DoctorDashboard.jsx
-// This component provides the dashboard for doctors, displaying their appointments.
-// It allows doctors to update appointment statuses and reschedule appointments.
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Typography, Box, Button,
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, CircularProgress,
   List, ListItem, ListItemText, ListItemSecondaryAction, Divider, Chip,
-  FormControl, InputLabel, Select, MenuItem, Paper
-} from '@mui/material'; // Material UI components
-import { AuthContext } from '../AuthContext.jsx'; // Import AuthContext
-import axios from 'axios'; // Axios for HTTP requests
+  FormControl, InputLabel, Select, MenuItem
+} from '@mui/material';
+import { AuthContext } from '../AuthContext.jsx';
+import axios from 'axios';
 
-// Helper function to format date to YYYY-MM-DD (for input type="date")
 const formatDateToYYYYMMDD = (dateString) => {
   const date = new Date(dateString);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
-// Helper function to format date for display (e.g., "June 24, 2025")
 const formatDisplayDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 const DoctorDashboard = ({ showSnackbar }) => {
-  const { API_BASE_URL } = useContext(AuthContext); // Access API_BASE_URL from AuthContext
-  const [appointments, setAppointments] = useState([]); // State to store doctor's appointments
-  const [loading, setLoading] = useState(true); // Loading state for fetching appointments
-  const [openRescheduleDialog, setOpenRescheduleDialog] = useState(false); // State for reschedule dialog
-  const [currentAppointmentToReschedule, setCurrentAppointmentToReschedule] = useState(null); // Appointment selected for reschedule
-
-  // Reschedule form states
+  const { API_BASE_URL } = useContext(AuthContext);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openRescheduleDialog, setOpenRescheduleDialog] = useState(false);
+  const [currentAppointmentToReschedule, setCurrentAppointmentToReschedule] = useState(null);
   const [newRescheduleDate, setNewRescheduleDate] = useState('');
   const [newRescheduleTime, setNewRescheduleTime] = useState('');
 
-  // Fetch doctor's appointments when the component mounts or dependencies change
   useEffect(() => {
     fetchDoctorAppointments();
-  }, [API_BASE_URL, showSnackbar]); // Dependencies for useEffect
+  }, [API_BASE_URL, showSnackbar]);
 
   const fetchDoctorAppointments = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/doctor/appointments`);
-      // Sort appointments: Emergency first, then by date and time
       const sortedAppointments = res.data.sort((a, b) => {
-        // Emergency appointments come first
         if (a.isEmergency && !b.isEmergency) return -1;
         if (!a.isEmergency && b.isEmergency) return 1;
-
-        // Then sort by date and time
         const dateA = new Date(`${a.date}T${a.time}`);
         const dateB = new Date(`${b.date}T${b.time}`);
         return dateA.getTime() - dateB.getTime();
@@ -67,7 +54,6 @@ const DoctorDashboard = ({ showSnackbar }) => {
     }
   };
 
-  // Helper to get Chip color based on status
   const getStatusChipColor = (status) => {
     switch (status) {
       case 'pending': return 'warning';
@@ -78,7 +64,6 @@ const DoctorDashboard = ({ showSnackbar }) => {
     }
   };
 
-  // Helper to get Chip color based on payment status
   const getPaymentStatusChipColor = (status) => {
     switch (status) {
       case 'pending': return 'warning';
@@ -88,27 +73,24 @@ const DoctorDashboard = ({ showSnackbar }) => {
     }
   };
 
-  // Handle status change for an appointment
   const handleStatusChange = async (appointmentId, newStatus) => {
     try {
       const res = await axios.put(`${API_BASE_URL}/doctor/appointments/${appointmentId}/status`, { status: newStatus });
       showSnackbar(res.data.msg, 'success');
-      fetchDoctorAppointments(); // Refresh appointments list
+      fetchDoctorAppointments();
     } catch (err) {
       console.error('Error updating appointment status:', err.response ? err.response.data : err.message);
       showSnackbar(err.response ? err.response.data.msg : 'Failed to update status.', 'error');
     }
   };
 
-  // Open reschedule dialog
   const handleOpenRescheduleDialog = (appointment) => {
     setCurrentAppointmentToReschedule(appointment);
-    setNewRescheduleDate(formatDateToYYYYMMDD(appointment.date)); // Pre-fill with current date
-    setNewRescheduleTime(appointment.time); // Pre-fill with current time
+    setNewRescheduleDate(formatDateToYYYYMMDD(appointment.date));
+    setNewRescheduleTime(appointment.time);
     setOpenRescheduleDialog(true);
   };
 
-  // Close reschedule dialog and reset form
   const handleCloseRescheduleDialog = () => {
     setOpenRescheduleDialog(false);
     setCurrentAppointmentToReschedule(null);
@@ -116,19 +98,17 @@ const DoctorDashboard = ({ showSnackbar }) => {
     setNewRescheduleTime('');
   };
 
-  // Handle reschedule submission
   const handleRescheduleAppointment = async () => {
     if (!currentAppointmentToReschedule) return;
-
     try {
       const res = await axios.put(`${API_BASE_URL}/doctor/appointments/${currentAppointmentToReschedule._id}/status`, {
-        status: 'scheduled', // Set status to scheduled upon rescheduling
+        status: 'scheduled',
         date: newRescheduleDate,
         time: newRescheduleTime,
       });
       showSnackbar(`Appointment with ${currentAppointmentToReschedule.customer.username} rescheduled and set to scheduled!`, 'success');
-      handleCloseRescheduleDialog(); // Close dialog
-      fetchDoctorAppointments(); // Refresh appointments list
+      handleCloseRescheduleDialog();
+      fetchDoctorAppointments();
     } catch (err) {
       console.error('Error rescheduling appointment:', err.response ? err.response.data : err.message);
       showSnackbar(err.response ? err.response.data.msg : 'Failed to reschedule appointment.', 'error');
@@ -153,22 +133,23 @@ const DoctorDashboard = ({ showSnackbar }) => {
         <List>
           {appointments.map((appointment) => (
             <React.Fragment key={appointment._id}>
-              <ListItem alignItems="flex-start" sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, boxShadow: 1,
-                backgroundColor: appointment.isEmergency ? '#ffe0b2' : 'white' // Highlight emergency appointments
+              <ListItem alignItems="flex-start" sx={{
+                mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 2, boxShadow: 1,
+                backgroundColor: appointment.isEmergency ? '#ffe0b2' : 'white'
               }}>
                 <ListItemText
                   primary={
                     <Box display="flex" alignItems="center">
-                        <Typography variant="h6" component="div">
-                            Appointment with {appointment.customer.username} on {formatDisplayDate(appointment.date)} at {appointment.time}
-                        </Typography>
-                        {appointment.isEmergency && (
-                            <Chip label="EMERGENCY" color="error" size="small" sx={{ ml: 1, fontWeight: 'bold' }} />
-                        )}
+                      <Typography variant="h6" component="div">
+                        Appointment with {appointment.customer.username} on {formatDisplayDate(appointment.date)} at {appointment.time}
+                      </Typography>
+                      {appointment.isEmergency && (
+                        <Chip label="EMERGENCY" color="error" size="small" sx={{ ml: 1, fontWeight: 'bold' }} />
+                      )}
                     </Box>
                   }
                   secondary={
-                    <React.Fragment>
+                    <>
                       <Typography sx={{ display: 'inline' }} component="span" variant="body2" color="text.secondary">
                         Status: <Chip label={appointment.status} color={getStatusChipColor(appointment.status)} size="small" sx={{ ml: 0.5 }} />
                       </Typography>
@@ -182,10 +163,10 @@ const DoctorDashboard = ({ showSnackbar }) => {
                       )}
                       {appointment.documents && appointment.documents.length > 0 && (
                         <Typography sx={{ display: 'block' }} component="span" variant="body2" color="text.secondary">
-                          Documents: {appointment.documents.join(', ')}
+                          Documents: {appointment.documents.join(', ') }
                         </Typography>
                       )}
-                    </React.Fragment>
+                    </>
                   }
                 />
                 <ListItemSecondaryAction sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>

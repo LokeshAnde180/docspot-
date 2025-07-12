@@ -1,26 +1,21 @@
-// frontend/src/components/AdminDashboard.jsx
-// This component provides the administration dashboard.
-// It allows admins to manage users (view, delete) and approve doctor accounts.
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Typography, Box, List, ListItem, ListItemText, ListItemSecondaryAction, Button, Divider, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress
-} from '@mui/material'; // Material UI components
-import { AuthContext } from '../AuthContext.jsx'; // Import AuthContext
-import axios from 'axios'; // Axios for HTTP requests
+} from '@mui/material';
+import { AuthContext } from '../AuthContext.jsx';
+import axios from 'axios';
 
 const AdminDashboard = ({ showSnackbar }) => {
-  const { API_BASE_URL } = useContext(AuthContext); // Access API_BASE_URL from AuthContext
-  const [users, setUsers] = useState([]); // State to store all users
-  const [loading, setLoading] = useState(true); // Loading state for fetching users
+  const { API_BASE_URL } = useContext(AuthContext);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  // Fetch all users when the component mounts
   useEffect(() => {
     fetchAllUsers();
-  }, [API_BASE_URL, showSnackbar]); // Dependencies for useEffect
+  }, [API_BASE_URL, showSnackbar]);
 
   const fetchAllUsers = async () => {
     try {
@@ -34,39 +29,35 @@ const AdminDashboard = ({ showSnackbar }) => {
     }
   };
 
-  // Handle doctor approval
   const handleApproveDoctor = async (userId) => {
     try {
       const res = await axios.put(`${API_BASE_URL}/admin/doctors/${userId}/approve`);
       showSnackbar(res.data.msg, 'success');
-      fetchAllUsers(); // Refresh user list to reflect approval
+      fetchAllUsers();
     } catch (err) {
       console.error('Error approving doctor:', err.response ? err.response.data : err.message);
       showSnackbar(err.response ? err.response.data.msg : 'Failed to approve doctor.', 'error');
     }
   };
 
-  // Open confirmation dialog for user deletion
   const handleDeleteUserClick = (user) => {
     setUserToDelete(user);
     setOpenConfirmDialog(true);
   };
 
-  // Close confirmation dialog
   const handleCloseConfirmDialog = () => {
     setOpenConfirmDialog(false);
     setUserToDelete(null);
   };
 
-  // Handle user deletion
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
 
     try {
       const res = await axios.delete(`${API_BASE_URL}/admin/users/${userToDelete._id}`);
       showSnackbar(res.data.msg, 'success');
-      fetchAllUsers(); // Refresh user list
-      handleCloseConfirmDialog(); // Close dialog
+      fetchAllUsers();
+      handleCloseConfirmDialog();
     } catch (err) {
       console.error('Error deleting user:', err.response ? err.response.data : err.message);
       showSnackbar(err.response ? err.response.data.msg : 'Failed to delete user.', 'error');
@@ -123,7 +114,7 @@ const AdminDashboard = ({ showSnackbar }) => {
                       Approve Doctor
                     </Button>
                   )}
-                  {user.role !== 'admin' && ( // Prevent admin from deleting other admins or themselves here for safety
+                  {user.role !== 'admin' && (
                     <Button
                       variant="outlined"
                       color="error"

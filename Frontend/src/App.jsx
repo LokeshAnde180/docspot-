@@ -1,44 +1,18 @@
-// frontend/src/App.jsx
-// This is the main application component. It handles the overall layout,
-// conditional rendering based on authentication state and user roles,
-// and manages global snackbar messages.
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
   AppBar, Toolbar, Typography, Button, Box, Container, CircularProgress,
-  Snackbar, Alert, TextField, FormControlLabel, Checkbox, List, ListItem,
-  ListItemText, ListItemSecondaryAction, Divider, Chip, Dialog, DialogTitle,
-  DialogContent, DialogActions, RadioGroup, Radio, FormControl, InputLabel,
-  Select, MenuItem, Paper
+  Snackbar, Alert, TextField, Paper
 } from '@mui/material';
 import axios from 'axios';
 
-// Import AuthContext from AuthContext.jsx
 import { AuthContext } from './AuthContext.jsx';
 
-// Import components for routing
 import AdminDashboard from './components/AdminDashboard.jsx';
 import CustomerDashboard from './components/CustomerDashboard.jsx';
 import CustomerAppointments from './components/CustomerAppointments.jsx';
 import DoctorDashboard from './components/DoctorDashboard.jsx';
 import DoctorProfileForm from './components/DoctorProfileForm.jsx';
 
-// Helper function to format date to YYYY-MM-DD (for input type="date")
-const formatDateToYYYYMMDD = (dateString) => {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Helper function to format date for display (e.g., "June 24, 2025")
-const formatDisplayDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-};
-
-// --- AuthForm Component (Kept here for simplicity as it's directly related to App's auth flow) ---
 const AuthForm = ({ showSnackbar }) => {
   const [isRegister, setIsRegister] = useState(true);
   const [username, setUsername] = useState('');
@@ -54,8 +28,8 @@ const AuthForm = ({ showSnackbar }) => {
       if (isRegister) {
         const res = await axios.post(`${API_BASE_URL}/auth/register`, { username, email, password });
         showSnackbar(res.data.msg + (res.data.role === 'doctor' ? ' (Recognized as Doctor!)' : ''), 'success');
-        setIsRegister(false); // Switch to login after successful registration
-        setEmail(''); // Clear email and password fields to encourage login
+        setIsRegister(false);
+        setEmail('');
         setPassword('');
       } else {
         await login(email, password);
@@ -72,11 +46,7 @@ const AuthForm = ({ showSnackbar }) => {
       <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 4 }}>
         {isRegister ? 'Register' : 'Login'}
       </Typography>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
-      >
+      <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {isRegister && (
           <TextField
             label="Username"
@@ -105,29 +75,17 @@ const AuthForm = ({ showSnackbar }) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          size="large"
-          sx={{ mt: 2 }}
-        >
+        <Button type="submit" variant="contained" color="primary" size="large" sx={{ mt: 2 }}>
           {isRegister ? 'Register' : 'Login'}
         </Button>
       </Box>
-      <Button
-        fullWidth
-        variant="text"
-        sx={{ mt: 2 }}
-        onClick={() => setIsRegister(!isRegister)}
-      >
+      <Button fullWidth variant="text" sx={{ mt: 2 }} onClick={() => setIsRegister(!isRegister)}>
         {isRegister ? 'Already have an account? Login' : 'Need an account? Register'}
       </Button>
     </Box>
   );
 };
 
-// --- Navbar Component (Kept here as it's directly related to App's layout and navigation) ---
 const Navbar = ({ role, onNavigate }) => {
   const { logout, user } = useContext(AuthContext);
 
@@ -142,7 +100,6 @@ const Navbar = ({ role, onNavigate }) => {
           DOCSPOT - {role ? role.toUpperCase() : 'Guest'} Portal
         </Typography>
         {user && <Typography variant="subtitle1" sx={{ mr: 2 }}>Welcome, {user.username}</Typography>}
-
         <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
           {role === 'customer' && (
             <>
@@ -157,9 +114,7 @@ const Navbar = ({ role, onNavigate }) => {
             </>
           )}
           {role === 'admin' && (
-            <>
-              <Button color="inherit" onClick={() => onNavigate('dashboard')}>Admin Dashboard</Button>
-            </>
+            <Button color="inherit" onClick={() => onNavigate('dashboard')}>Admin Dashboard</Button>
           )}
         </Box>
         <Button color="inherit" onClick={handleLogout}>Logout</Button>
@@ -168,7 +123,6 @@ const Navbar = ({ role, onNavigate }) => {
   );
 };
 
-// --- Main App Component ---
 function App() {
   const { isAuthenticated, user, role, loading, loadUser } = useContext(AuthContext);
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -177,7 +131,6 @@ function App() {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   useEffect(() => {
-    // This effect runs once on component mount to try and load user from token
     if (!isAuthenticated && !loading && localStorage.getItem('token')) {
       loadUser();
     }
@@ -190,9 +143,7 @@ function App() {
   };
 
   const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
+    if (reason === 'clickaway') return;
     setSnackbarOpen(false);
   };
 

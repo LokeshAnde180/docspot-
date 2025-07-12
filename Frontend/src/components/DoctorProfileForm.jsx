@@ -1,23 +1,19 @@
-// frontend/src/components/DoctorProfileForm.jsx
-// This component allows doctors to create or update their professional profiles.
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Typography, Box, Button, TextField, CircularProgress, Paper
-} from '@mui/material'; // Material UI components
-import { AuthContext } from '../AuthContext.jsx'; // Import AuthContext
-import axios from 'axios'; // Axios for HTTP requests
+} from '@mui/material';
+import { AuthContext } from '../AuthContext.jsx';
+import axios from 'axios';
 
 const DoctorProfileForm = ({ showSnackbar }) => {
-  const { API_BASE_URL } = useContext(AuthContext); // Access API_BASE_URL from AuthContext
+  const { API_BASE_URL } = useContext(AuthContext);
   const [specialty, setSpecialty] = useState('');
   const [clinicName, setClinicName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [loading, setLoading] = useState(true); // Loading state for fetching profile
-  const [isApproved, setIsApproved] = useState(false); // Doctor's approval status
+  const [loading, setLoading] = useState(true);
+  const [isApproved, setIsApproved] = useState(false);
 
-  // Fetch doctor's profile when the component mounts
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -27,21 +23,19 @@ const DoctorProfileForm = ({ showSnackbar }) => {
         setClinicName(profile.clinicName || '');
         setAddress(profile.address || '');
         setPhone(profile.phone || '');
-        setIsApproved(profile.isApproved); // Set approval status from fetched data
+        setIsApproved(profile.isApproved);
       } catch (err) {
         console.error('Error fetching doctor profile:', err.response ? err.response.data : err.message);
-        // If profile not found (404), it's okay, user can create it. Show snackbar for other errors.
         if (err.response && err.response.status !== 404) {
           showSnackbar(err.response ? err.response.data.msg : 'Failed to load profile.', 'error');
         }
       } finally {
-        setLoading(false); // Loading complete
+        setLoading(false);
       }
     };
     fetchProfile();
-  }, [API_BASE_URL, showSnackbar]); // Dependencies for useEffect
+  }, [API_BASE_URL, showSnackbar]);
 
-  // Handle form submission (create or update profile)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -49,7 +43,7 @@ const DoctorProfileForm = ({ showSnackbar }) => {
         specialty, clinicName, address, phone
       });
       showSnackbar(res.data.msg, 'success');
-      setIsApproved(res.data.profile.isApproved); // Update approval status after save
+      setIsApproved(res.data.profile.isApproved);
     } catch (err) {
       console.error('Error saving doctor profile:', err.response ? err.response.data : err.message);
       showSnackbar(err.response ? err.response.data.msg : 'Failed to save profile.', 'error');

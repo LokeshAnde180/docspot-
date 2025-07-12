@@ -1,41 +1,33 @@
-// frontend/src/components/CustomerDashboard.jsx
-// This component is the main dashboard for customers.
-// It displays a list of approved doctors and provides a form to book an appointment.
-
 import React, { useState, useEffect, useContext } from 'react';
 import {
   Typography, Box, Button,
   Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, FormControlLabel, Checkbox, CircularProgress,
   List, ListItem, ListItemText, ListItemSecondaryAction, Divider
-} from '@mui/material'; // Material UI components
-import { AuthContext } from '../AuthContext.jsx'; // Import AuthContext
-import axios from 'axios'; // Axios for HTTP requests
+} from '@mui/material';
+import { AuthContext } from '../AuthContext.jsx';
+import axios from 'axios';
 
-// Helper function to format date to YYYY-MM-DD (for input type="date")
 const formatDateToYYYYMMDD = (dateString) => {
   const date = new Date(dateString);
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
 const CustomerDashboard = ({ showSnackbar }) => {
-  const { API_BASE_URL } = useContext(AuthContext); // Access API_BASE_URL from AuthContext
-  const [doctors, setDoctors] = useState([]); // State to store approved doctors
-  const [loading, setLoading] = useState(true); // Loading state for fetching doctors
-  const [openBookDialog, setOpenBookDialog] = useState(false); // State for appointment booking dialog
-  const [selectedDoctor, setSelectedDoctor] = useState(null); // State for the doctor selected for booking
-
-  // Appointment form states
+  const { API_BASE_URL } = useContext(AuthContext);
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openBookDialog, setOpenBookDialog] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [appointmentDate, setAppointmentDate] = useState('');
   const [appointmentTime, setAppointmentTime] = useState('');
-  const [documents, setDocuments] = useState(''); // Mock documents field (string for simplicity)
+  const [documents, setDocuments] = useState('');
   const [notes, setNotes] = useState('');
-  const [isEmergency, setIsEmergency] = useState(false); // State for emergency flag
+  const [isEmergency, setIsEmergency] = useState(false);
 
-  // Fetch approved doctors when the component mounts
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
@@ -49,15 +41,13 @@ const CustomerDashboard = ({ showSnackbar }) => {
       }
     };
     fetchDoctors();
-  }, [API_BASE_URL, showSnackbar]); // Dependencies for useEffect
+  }, [API_BASE_URL, showSnackbar]);
 
-  // Open the appointment booking dialog
   const handleOpenBookDialog = (doctor) => {
     setSelectedDoctor(doctor);
     setOpenBookDialog(true);
   };
 
-  // Close the appointment booking dialog and reset form
   const handleCloseBookDialog = () => {
     setOpenBookDialog(false);
     setSelectedDoctor(null);
@@ -68,13 +58,11 @@ const CustomerDashboard = ({ showSnackbar }) => {
     setIsEmergency(false);
   };
 
-  // Handle appointment booking submission
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     if (!selectedDoctor) return;
 
     try {
-      // Send appointment booking request
       const res = await axios.post(`${API_BASE_URL}/customer/appointments`, {
         doctorId: selectedDoctor.user._id,
         date: appointmentDate,
@@ -84,8 +72,7 @@ const CustomerDashboard = ({ showSnackbar }) => {
         isEmergency,
       });
       showSnackbar(res.data.msg, 'success');
-      handleCloseBookDialog(); // Close dialog on success
-      // Note: After booking, the customer will need to go to "My Appointments" to pay and confirm.
+      handleCloseBookDialog();
     } catch (err) {
       console.error('Error booking appointment:', err.response ? err.response.data : err.message);
       showSnackbar(err.response ? err.response.data.msg : 'Failed to book appointment.', 'error');
